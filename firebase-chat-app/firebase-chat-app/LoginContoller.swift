@@ -51,47 +51,14 @@ class LoginController: UIViewController {
                 print("Form is not valid")
                 return
         }
-        
+// Sign in user Need to move to handlers
         FIRAuth.auth()?.signIn(withEmail: email, password: password, completion: { (user, error) in
-            if error != nil {
-                print(error!)
+            if let error = error {
+                print(error)
                 return
             }
             // successfully logged in user
             self.dismiss(animated: true, completion: nil)
-        })
-    }
-    
-    func handleRegister() {
-        // call firebase authentication
-        guard let email = emailTextField.text, let password = passwordTextField.text, let name = nameTextField.text else {
-            print("Form is not valid")
-            return
-        }
-        
-        FIRAuth.auth()?.createUser(withEmail: email, password: password, completion: { (user: FIRUser?, error) in
-            if error != nil {
-                print(error!)
-                return
-            }
-            
-            guard let uid = user?.uid else {
-                return
-            }
-            // successfully authenticated user
-            
-            let ref = FIRDatabase.database().reference(fromURL: "https://fir-chatapp-5be59.firebaseio.com/")
-            let usersReference = ref.child("users").child(uid)
-            let values = ["name": name, "email": email]
-            usersReference.updateChildValues(values, withCompletionBlock: { (err, ref) in
-                
-                if err != nil {
-                    print(err!)
-                    return
-                }
-                print("Saved user successfully to Firebase DB!!!!!!!!!!!!")
-                self.dismiss(animated: true, completion: nil)
-            })
         })
     }
     
@@ -136,13 +103,17 @@ class LoginController: UIViewController {
         return textField
     }()
     
-    let profileImageView: UIImageView = {
+    lazy var profileImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "??")
         imageView.contentMode = .scaleAspectFill // fits correct aspect ratio
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        
+        imageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSelectedProfileImageView)))
+        imageView.isUserInteractionEnabled = true 
         return imageView
     }()
+    
     
     lazy var loginRegisterSegmentControl: UISegmentedControl = {
         let segmentedControl = UISegmentedControl(items: ["Login", "Register"])
