@@ -11,6 +11,8 @@ import Firebase
 
 class LoginController: UIViewController {
     
+    var messagesController: MessagesController?
+    
     // create inputs view
     let inputsContainerView: UIView = {
         let view = UIView()
@@ -58,6 +60,7 @@ class LoginController: UIViewController {
                 return
             }
             // successfully logged in user
+            self.messagesController?.fetchUserAndSetNavBarTitle()
             self.dismiss(animated: true, completion: nil)
         })
     }
@@ -105,7 +108,7 @@ class LoginController: UIViewController {
     
     lazy var profileImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "??")
+        imageView.image = UIImage(named: "gameofthrones_splash")
         imageView.contentMode = .scaleAspectFill // fits correct aspect ratio
         imageView.translatesAutoresizingMaskIntoConstraints = false
         

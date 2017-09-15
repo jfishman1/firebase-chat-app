@@ -23,7 +23,6 @@ class NewMessageController: UITableViewController {
         tableView.register(UserCell.self, forCellReuseIdentifier: cellId)
         
         fetchUser()
-
     }
     
     func fetchUser() {
@@ -31,8 +30,8 @@ class NewMessageController: UITableViewController {
             
             if let dictionary = snapshot.value as? [String : AnyObject] {
                 let user = User()
-                
-                // If you use this setter, your app will crash if your class properties don't exactly match up with the firebase dictionary keys
+                user.id = snapshot.key // Firebase UUID
+                // If you use this setter, your app will crash if your user class properties don't exactly match up with the firebase dictionary keys
                 user.setValuesForKeys(dictionary)
                 self.users.append(user)
                 DispatchQueue.main.async(execute: {
@@ -55,23 +54,59 @@ class NewMessageController: UITableViewController {
         
         // hack to get setup without dequeue
         //let cell = UITableViewCell(style: .subtitle, reuseIdentifier: cellId)
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! UserCell
         let user = users[indexPath.row]
         cell.textLabel?.text = user.name
         cell.detailTextLabel?.text = user.email
+//        cell.imageView?.image = UIImage(named:"nedstark")
+//        cell.imageView?.contentMode = .scaleAspectFill
+        
+        // add images of each user to their cell
+        if let profileImageUrl = user.profileImageUrl {
+            cell.profileImageView.loadImageUsingCacheWithUrlString(urlString: profileImageUrl)
+    // moved below to extensions.swift
+//            let url = URL(string: profileImageUrl)
+//            // execute this to download the image off of main queue
+//            URLSession.shared.dataTask(with: url!, completionHandler: { (data, response, error) in
+//                
+//                //download hit an error so lets return out
+//                if let error = error {
+//                    print(error)
+//                    return
+//                }
+//                //download is successful
+//                
+//                // we need to run image setter (all UI updates) on main queue
+//                DispatchQueue.main.async(execute: {
+//                    if let downloadedImage = UIImage(data: data!) {
+////                        cell.imageView?.image = downloadedImage
+//                        cell.profileImageView.image = downloadedImage
+//                    }
+//                })
+//            }).resume() // needed to fire off URL session request
+        }
         
         return cell
     }
+    
+    // add spacing to cells
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 72
+    }
+    
+    var messagesController: MessagesController?
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        dismiss(animated: true, completion: {
+            print("dismiss completed")
+            let user = self.users[indexPath.row]
+            self.messagesController?.showChatControllerForUser(user: user)
+            // messagesController will be nil bc we did not set it to any object yet,
+            // we want to set messagesController every time we click the new chat button
+            // when we click the new chat button aka rightBarButton "new_message_icon" we call handleNewMessage
+        
+        })
+    }
 
 }
 
-class UserCell: UITableViewCell {
-    
-    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
-        super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
