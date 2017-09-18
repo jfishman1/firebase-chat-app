@@ -45,7 +45,7 @@ extension LoginController: UIImagePickerControllerDelegate, UINavigationControll
                         print(error)
                         return
                     }
-                    print(metadata!)
+                    //print(metadata!)
 
                     if let profileImageUrl = metadata?.downloadURL()?.absoluteString {
                         
@@ -70,11 +70,9 @@ extension LoginController: UIImagePickerControllerDelegate, UINavigationControll
             
  // unneccessary firebase call           self.messagesController?.fetchUserAndSetNavBarTitle()
 //            self.messagesController?.navigationItem.title = values["name"] as? String
-            let user = User()
-            // this setter will potentially crash if keys don't match
-            user.setValuesForKeys(values)
+            let user = User(dictionary: values)
             self.messagesController?.setupNavBarWithUser(user: user)
-            print("Saved user successfully to Firebase DB!!!!!!!!!!!!")
+            //print("Saved user successfully to Firebase DB!!!!!!!!!!!!")
             self.dismiss(animated: true, completion: nil)
         })
     }

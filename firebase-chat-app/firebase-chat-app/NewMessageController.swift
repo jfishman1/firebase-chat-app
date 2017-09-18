@@ -29,11 +29,10 @@ class NewMessageController: UITableViewController {
         FIRDatabase.database().reference().child("users").observe(.childAdded, with: { (snapshot) in
             
             if let dictionary = snapshot.value as? [String : AnyObject] {
-                let user = User()
+                let user = User(dictionary: dictionary)
                 user.id = snapshot.key // Firebase UUID
-                // If you use this setter, your app will crash if your user class properties don't exactly match up with the firebase dictionary keys
-                user.setValuesForKeys(dictionary)
                 self.users.append(user)
+
                 DispatchQueue.main.async(execute: {
                     self.tableView.reloadData()
                 })
@@ -51,7 +50,6 @@ class NewMessageController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
         // hack to get setup without dequeue
         //let cell = UITableViewCell(style: .subtitle, reuseIdentifier: cellId)
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! UserCell

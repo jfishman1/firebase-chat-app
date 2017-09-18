@@ -18,12 +18,12 @@ class UserCell: UITableViewCell {
             
             detailTextLabel?.text = message?.text
             
-            if let seconds = message?.timeStamp?.doubleValue {
-                let timeStampDate = Date(timeIntervalSince1970: seconds)
+            if let seconds = message?.timestamp?.doubleValue {
+                let timestampDate = Date(timeIntervalSince1970: seconds)
                 
                 let dateFormatter = DateFormatter()
                 dateFormatter.dateFormat = "hh:mm:ss a"
-                timeLabel.text = dateFormatter.string(from: timeStampDate)
+                timeLabel.text = dateFormatter.string(from: timestampDate)
             }
         }
     }

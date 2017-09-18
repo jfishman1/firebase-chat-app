@@ -25,7 +25,6 @@ class MessagesController: UITableViewController {
         tableView.register(UserCell.self, forCellReuseIdentifier: cellId)
         
         //observeMessages()
-        
     }
     
     var messages = [Message]()
@@ -38,60 +37,53 @@ class MessagesController: UITableViewController {
         let ref = FIRDatabase.database().reference().child("user-messages").child(uid)
         ref.observe(.childAdded, with: { (snapshot) in
             //print(snapshot) // shows the Ids of the messages node
-            let messageId = snapshot.key
-            let messageReference = FIRDatabase.database().reference().child("messages").child(messageId)
-            
-            messageReference.observeSingleEvent(of: .value, with: { (snapshot) in
-                //print(snapshot) // this will show the message structure
-                
-                if let dictionary = snapshot.value as? [String: AnyObject] {
-                    let message = Message()
-                    message.setValuesForKeys(dictionary)
-                    
-                    // show all the messages grouped by who they were sent to
-                    if let toId = message.toId {
-                        self.messagesDictionary[toId] = message
-                        
-                        self.messages = Array(self.messagesDictionary.values)
-                        self.messages.sort(by: { (message1, message2) -> Bool in
-                            
-                            return (message1.timeStamp?.int32Value)! > (message2.timeStamp?.int32Value)!
-                        })
-                    }
-                    //print(message.text!)
-                    DispatchQueue.main.async(execute: {
-                        self.tableView.reloadData()
-                    })
-                }
-                
+          
+            let userId = snapshot.key
+            FIRDatabase.database().reference().child("user-messages").child(uid).child(userId).observe(.childAdded, with: { (snapshot) in
+                //print(snapshot) // shows the messages of the user
+                let messageId = snapshot.key
+                self.fetchMessageWithMessageId(messageId: messageId)
             }, withCancel: nil)
         }, withCancel: nil)
     }
     
-    func observeMessages() {
-        let ref = FIRDatabase.database().reference().child("messages")
-        ref.observe(.childAdded, with: { (snapshot) in
+    fileprivate func fetchMessageWithMessageId(messageId: String) {
+        let messagesReference = FIRDatabase.database().reference().child("messages").child(messageId)
+        
+        messagesReference.observeSingleEvent(of: .value, with: { (snapshot) in
+            
             if let dictionary = snapshot.value as? [String: AnyObject] {
-                let message = Message()
-                message.setValuesForKeys(dictionary)
+                let message = Message(dictionary: dictionary)
                 
-                // show all the messages grouped by who they were sent to
-                if let toId = message.toId {
-                    self.messagesDictionary[toId] = message
-                    
-                    self.messages = Array(self.messagesDictionary.values)
-                    self.messages.sort(by: { (message1, message2) -> Bool in
-                        
-                        return (message1.timeStamp?.int32Value)! > (message2.timeStamp?.int32Value)!
-                    })
+                if let chatPartnerId = message.chatPartnerId() {
+                    self.messagesDictionary[chatPartnerId] = message
                 }
-                //print(message.text!)
-                DispatchQueue.main.async(execute: {
-                    self.tableView.reloadData()
-                })
+                
+                self.attemptReloadOfTable()
             }
             
         }, withCancel: nil)
+    }
+    
+    fileprivate func attemptReloadOfTable() {
+        self.timer?.invalidate()
+        
+        self.timer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(self.handleReloadTable), userInfo: nil, repeats: false)
+    }
+    
+    var timer: Timer?
+    
+    func handleReloadTable() {
+        self.messages = Array(self.messagesDictionary.values)
+        self.messages.sort(by: { (message1, message2) -> Bool in
+            
+            return (message1.timestamp?.int32Value)! > (message2.timestamp?.int32Value)!
+        })
+        
+        //this will crash because of background thread, so lets call this on dispatch_async main thread
+        DispatchQueue.main.async(execute: {
+            self.tableView.reloadData()
+        })
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -141,14 +133,12 @@ class MessagesController: UITableViewController {
         let ref = FIRDatabase.database().reference().child("users").child(chatPartnerId)
         ref.observeSingleEvent(of: .value, with: { (snapshot) in
             //print(snapshot) will show dictionary when row is clicked
-            guard let dictionary = snapshot.value as? [String: AnyObject]
-                else {
-                    return
+            guard let dictionary = snapshot.value as? [String: AnyObject] else {
+                return
             }
             
-            let user = User()
+            let user = User(dictionary: dictionary)
             user.id = chatPartnerId
-            user.setValuesForKeys(dictionary)
             self.showChatControllerForUser(user: user)
             
         }, withCancel: nil)
@@ -179,18 +169,11 @@ class MessagesController: UITableViewController {
             return
         }
         FIRDatabase.database().reference().child("users").child(uid).observeSingleEvent(of: .value, with: { (snapshot) in
-            
-            print(snapshot) // prints user data
-            
+            //print(snapshot) // prints user data
             if let dictionary = snapshot.value as? [String : AnyObject] {
-      //          self.navigationItem.title = dictionary["name"] as? String
-                
-                let user = User()
-                user.setValuesForKeys(dictionary)
+                let user = User(dictionary: dictionary)
                 self.setupNavBarWithUser(user: user)
             }
-            
-            
         }, withCancel: nil)
     }
     
