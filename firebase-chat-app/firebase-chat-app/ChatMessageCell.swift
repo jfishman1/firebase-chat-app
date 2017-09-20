@@ -9,6 +9,9 @@
 import UIKit
 
 class ChatMessageCell: UICollectionViewCell {
+    
+    var chatLogController: ChatLogController?
+    
     // UICollectionViewCells do not have default values like the TableView cells 
     let textView: UITextView = {
         let textView = UITextView()
@@ -41,14 +44,23 @@ class ChatMessageCell: UICollectionViewCell {
         return imageView
     }()
     
-    let messageImageView: UIImageView = {
+    lazy var messageImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.layer.cornerRadius = 16
         imageView.layer.masksToBounds = true
         imageView.contentMode = .scaleAspectFill
+        imageView.isUserInteractionEnabled = true
+        imageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleZoomTap)))
         return imageView
     }()
+    
+    func handleZoomTap(_ tapGesture: UITapGestureRecognizer) {
+        if let imageView = tapGesture.view as? UIImageView {
+            //PRO Tip: don't perform a lot of custom logic inside of a view class
+            self.chatLogController?.performZoomInForStartingImageView(imageView)
+        }
+    }
     
     var bubbleWidthAnchor: NSLayoutConstraint?
     var bubbleViewRightAnchor: NSLayoutConstraint?
