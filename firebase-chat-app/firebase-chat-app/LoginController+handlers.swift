@@ -18,7 +18,7 @@ extension LoginController: UIImagePickerControllerDelegate, UINavigationControll
             return
         }
         
-        FIRAuth.auth()?.createUser(withEmail: email, password: password, completion: { (user: FIRUser?, error) in
+        Auth.auth().createUser(withEmail: email, password: password, completion: { (user, error) in
             if error != nil {
                 print(error!)
                 return
@@ -29,9 +29,9 @@ extension LoginController: UIImagePickerControllerDelegate, UINavigationControll
             }
             // successfully authenticated user
             // create UUID for each image
-            let imageName = NSUUID().uuidString
+            let imageName = UUID().uuidString
             // upload image to Firebase storage, the reference needs a name, use .jpg for compression help below
-            let storageRef = FIRStorage.storage().reference().child("profile_images").child("\(imageName).jpg")
+            let storageRef = Storage.storage().reference().child("profile_images").child("\(imageName).jpg")
             
             // safely unwrap image and compress
             if let profileImage = self.profileImageView.image, let uploadData = UIImageJPEGRepresentation(profileImage, 0.1) {
@@ -40,7 +40,7 @@ extension LoginController: UIImagePickerControllerDelegate, UINavigationControll
             
             // create binary data to upload into storage
             //if let uploadData = UIImagePNGRepresentation(self.profileImageView.image!) {
-                storageRef.put(uploadData, metadata: nil, completion: { (metadata, error) in
+                storageRef.putData(uploadData, metadata: nil, completion: { (metadata, error) in
                     if let error = error {
                         print(error)
                         return
@@ -59,7 +59,7 @@ extension LoginController: UIImagePickerControllerDelegate, UINavigationControll
     }
     // "fileprivate" access control keyword limits use of entities to the source in which it was defined and can be used in extensions of that source whereas "private" can only be accessed in the lexical scope it is declared and cannot be accessed in extensions with Swift 3
     fileprivate func registerUserIntoDatabaseWithUID(uid: String, values: [String: AnyObject]) {
-        let ref = FIRDatabase.database().reference()
+        let ref = Database.database().reference()
         let usersReference = ref.child("users").child(uid)
         usersReference.updateChildValues(values, withCompletionBlock: { (err, ref) in
             
@@ -70,7 +70,7 @@ extension LoginController: UIImagePickerControllerDelegate, UINavigationControll
             
  // unneccessary firebase call           self.messagesController?.fetchUserAndSetNavBarTitle()
 //            self.messagesController?.navigationItem.title = values["name"] as? String
-            let user = User(dictionary: values)
+            let user = User(userDictionary: values)
             self.messagesController?.setupNavBarWithUser(user: user)
             //print("Saved user successfully to Firebase DB!!!!!!!!!!!!")
             self.dismiss(animated: true, completion: nil)

@@ -54,7 +54,7 @@ class LoginController: UIViewController {
                 return
         }
 // Sign in user Need to move to handlers
-        FIRAuth.auth()?.signIn(withEmail: email, password: password, completion: { (user, error) in
+        Auth.auth().signIn(withEmail: email, password: password, completion: { (user, error) in
             if let error = error {
                 print(error)
                 return

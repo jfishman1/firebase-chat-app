@@ -22,6 +22,7 @@
 		7E10AA251F5E42B80038B39A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7E10AA241F5E42B80038B39A /* GoogleService-Info.plist */; };
 		7ED60E5B1F69727100447B06 /* UserCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED60E5A1F69727100447B06 /* UserCell.swift */; };
 		7ED60E5D1F6C203F00447B06 /* ChatMessageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED60E5C1F6C203F00447B06 /* ChatMessageCell.swift */; };
+		7ED60E5F1F75D2DF00447B06 /* ChatInputContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED60E5E1F75D2DF00447B06 /* ChatInputContainerView.swift */; };
 		9F3B8F13205AC272A5EDF6B3 /* Pods_firebase_chat_app.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 93A43DB0D94C3CEE5FDB62D7 /* Pods_firebase_chat_app.framework */; };
 /* End PBXBuildFile section */
 
@@ -44,6 +45,7 @@
 		7E10AA241F5E42B80038B39A /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../GoogleService-Info.plist"; sourceTree = "<group>"; };
 		7ED60E5A1F69727100447B06 /* UserCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserCell.swift; sourceTree = "<group>"; };
 		7ED60E5C1F6C203F00447B06 /* ChatMessageCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatMessageCell.swift; sourceTree = "<group>"; };
+		7ED60E5E1F75D2DF00447B06 /* ChatInputContainerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatInputContainerView.swift; sourceTree = "<group>"; };
 		93A43DB0D94C3CEE5FDB62D7 /* Pods_firebase_chat_app.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_firebase_chat_app.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FE125A300A416A0BEC5283A7 /* Pods-firebase-chat-app.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-firebase-chat-app.release.xcconfig"; path = "Pods/Target Support Files/Pods-firebase-chat-app/Pods-firebase-chat-app.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -146,6 +148,7 @@
 			children = (
 				7ED60E5A1F69727100447B06 /* UserCell.swift */,
 				7ED60E5C1F6C203F00447B06 /* ChatMessageCell.swift */,
+				7ED60E5E1F75D2DF00447B06 /* ChatInputContainerView.swift */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -276,6 +279,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7E10A67F1F662C44008E1D7B /* ChatLogController.swift in Sources */,
+				7ED60E5F1F75D2DF00447B06 /* ChatInputContainerView.swift in Sources */,
 				7E10AA121F5E0B940038B39A /* MessagesController.swift in Sources */,
 				7E10AA231F5E0F160038B39A /* LoginContoller.swift in Sources */,
 				7E10A6811F68FDB9008E1D7B /* Message.swift in Sources */,

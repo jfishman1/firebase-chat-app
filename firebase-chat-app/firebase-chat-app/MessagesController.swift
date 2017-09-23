@@ -24,36 +24,78 @@ class MessagesController: UITableViewController {
         
         tableView.register(UserCell.self, forCellReuseIdentifier: cellId)
         
-        //observeMessages()
+        tableView.allowsMultipleSelectionDuringEditing = true // show delete button
+    }
+    // ability to delete
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    // delete being done
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        
+        guard let uid = Auth.auth().currentUser?.uid else {
+            return
+        }
+        
+        let message = self.messages[indexPath.row]
+        
+        if let chatPartnerId = message.chatPartnerId() {
+            Database.database().reference().child("user-messages").child(uid).child(chatPartnerId).removeValue(completionBlock: { (error, ref) in
+                
+                if error != nil {
+                    print("Failed to delete message:", error!)
+                    return
+                }
+                
+                self.messagesDictionary.removeValue(forKey: chatPartnerId)
+                self.attemptReloadOfTable()
+                
+                // this is one way of updating the table, but its actually not that safe..
+                //self.messages.removeAtIndex(indexPath.row)
+                //self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+                
+            })
+        }
     }
     
     var messages = [Message]()
+    // true data storage
     var messagesDictionary = [String: Message]()
     
     func observeUserMessages() {
-        guard let uid = FIRAuth.auth()?.currentUser?.uid else {
+        guard let uid = Auth.auth().currentUser?.uid else {
            return
         }
-        let ref = FIRDatabase.database().reference().child("user-messages").child(uid)
+        let ref = Database.database().reference().child("user-messages").child(uid)
         ref.observe(.childAdded, with: { (snapshot) in
             //print(snapshot) // shows the Ids of the messages node
           
             let userId = snapshot.key
-            FIRDatabase.database().reference().child("user-messages").child(uid).child(userId).observe(.childAdded, with: { (snapshot) in
+            Database.database().reference().child("user-messages").child(uid).child(userId).observe(.childAdded, with: { (snapshot) in
                 //print(snapshot) // shows the messages of the user
                 let messageId = snapshot.key
                 self.fetchMessageWithMessageId(messageId: messageId)
             }, withCancel: nil)
         }, withCancel: nil)
+        
+        // deleting a message from an outside source (from DB itself)
+        ref.observe(.childRemoved, with: { (snapshot) in
+            //print(snapshot.key)
+            //print(self.messagesDictionary)
+            
+            self.messagesDictionary.removeValue(forKey: snapshot.key)
+            self.attemptReloadOfTable()
+            
+        }, withCancel: nil)
     }
     
     fileprivate func fetchMessageWithMessageId(messageId: String) {
-        let messagesReference = FIRDatabase.database().reference().child("messages").child(messageId)
+        let messagesReference = Database.database().reference().child("messages").child(messageId)
         
         messagesReference.observeSingleEvent(of: .value, with: { (snapshot) in
             
             if let dictionary = snapshot.value as? [String: AnyObject] {
-                let message = Message(dictionary: dictionary)
+                let message = Message(messageDictionary: dictionary)
                 
                 if let chatPartnerId = message.chatPartnerId() {
                     self.messagesDictionary[chatPartnerId] = message
@@ -96,24 +138,7 @@ class MessagesController: UITableViewController {
         
         let message = messages[indexPath.row]
         cell.message = message
-        // below setup code should not be here and moved to the UserCell class
-//        if let toId = message.toId {
-//            let ref = FIRDatabase.database().reference().child("users").child(toId)
-//            ref.observeSingleEvent(of: .value, with: { (snapshot) in
-//                //print(snapshot)
-//                // access snapshot value
-//                if let dictionary = snapshot.value as? [String : AnyObject] {
-//                    
-//                    cell.textLabel?.text = dictionary["name"] as? String
-//                    
-//                    if let profileImageUrl = dictionary["profileImageUrl"] as? String {
-//                        cell.profileImageView.loadImageUsingCacheWithUrlString(urlString: profileImageUrl)
-//                    }
-//                }
-//            }, withCancel: nil)
-//        }
-//        cell.detailTextLabel?.text = message.text
-        
+        // setup code was moved to the UserCell class
         return cell
     }
     
@@ -130,14 +155,14 @@ class MessagesController: UITableViewController {
             return
         }
         
-        let ref = FIRDatabase.database().reference().child("users").child(chatPartnerId)
+        let ref = Database.database().reference().child("users").child(chatPartnerId)
         ref.observeSingleEvent(of: .value, with: { (snapshot) in
             //print(snapshot) will show dictionary when row is clicked
             guard let dictionary = snapshot.value as? [String: AnyObject] else {
                 return
             }
             
-            let user = User(dictionary: dictionary)
+            let user = User(userDictionary: dictionary)
             user.id = chatPartnerId
             self.showChatControllerForUser(user: user)
             
@@ -155,7 +180,7 @@ class MessagesController: UITableViewController {
     
     // check if user is logged in
     func checkIfUserIsLoggedIn() {
-        if FIRAuth.auth()?.currentUser?.uid == nil {
+        if Auth.auth().currentUser?.uid == nil {
             perform(#selector(handleLogout), with: nil, afterDelay: 0)
         } else {
            fetchUserAndSetNavBarTitle()
@@ -164,14 +189,14 @@ class MessagesController: UITableViewController {
     
     func fetchUserAndSetNavBarTitle() {
         // fetch user
-        guard let uid = FIRAuth.auth()?.currentUser?.uid else {
+        guard let uid = Auth.auth().currentUser?.uid else {
             // for some reason uid = nil
             return
         }
-        FIRDatabase.database().reference().child("users").child(uid).observeSingleEvent(of: .value, with: { (snapshot) in
+        Database.database().reference().child("users").child(uid).observeSingleEvent(of: .value, with: { (snapshot) in
             //print(snapshot) // prints user data
             if let dictionary = snapshot.value as? [String : AnyObject] {
-                let user = User(dictionary: dictionary)
+                let user = User(userDictionary: dictionary)
                 self.setupNavBarWithUser(user: user)
             }
         }, withCancel: nil)
@@ -247,7 +272,7 @@ class MessagesController: UITableViewController {
         
         // log out
         do {
-            try FIRAuth.auth()?.signOut()
+            try Auth.auth().signOut()
         } catch let logoutError {
             print(logoutError)
         }

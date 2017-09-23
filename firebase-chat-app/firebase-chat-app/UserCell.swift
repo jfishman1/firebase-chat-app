@@ -30,16 +30,9 @@ class UserCell: UITableViewCell {
     
     private func setupNameAndProfileImage() {
         // move to message model class to access in MessagesController
-//        let chatPartnerId: String?
-//        
-//        if message?.fromId == FIRAuth.auth()?.currentUser?.uid {
-//            chatPartnerId = message?.toId
-//        } else {
-//            chatPartnerId = message?.fromId
-//        }
         
         if let id = message?.chatPartnerId() {
-            let ref = FIRDatabase.database().reference().child("users").child(id)
+            let ref = Database.database().reference().child("users").child(id)
             ref.observeSingleEvent(of: .value, with: { (snapshot) in
                 //print(snapshot)
                 // access snapshot value
